@@ -15,4 +15,4 @@ async def on_ready():
 async def كسمك(ctx):
     await ctx.send("كسمين امك")
 
-bot.run(os.getenv("ODA2OTYyMDI5NDQwMjcwMzQ3.GjTILb.BpDH1FbsU6UHCVxGbCMBllmEYKANsVAMbgv7NI"))
+bot.run(os.getenv("TOKEN"))
