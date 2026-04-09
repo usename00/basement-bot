@@ -524,21 +524,6 @@ async def kiss(ctx, member: discord.Member):
 
     await ctx.send(embed=embed)
 
-@bot.command()
-@commands.has_permissions(ban_members=True)
-async def unban(ctx, user: str):
-    try:
-        # يشيل المنشن لو حطيته
-        user_id = int(user.replace("<@", "").replace("!", "").replace(">", ""))
-
-        user_obj = await bot.fetch_user(user_id)
-        await ctx.guild.unban(user_obj)
-
-        await ctx.send(f"unbanned <@{user_id}>")
-
-    except:
-        await ctx.send("invalid id or user not banned")
-
 WELCOME_CHANNEL_ID = 1459299005338091532  # حط ID الروم هنا
 
 @bot.event
