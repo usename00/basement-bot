@@ -60,6 +60,7 @@ async def get_voice_channel(interaction, channel_input):
     return None
 
 # ================= READY =================
+import requests
 
 @bot.event
 async def on_ready():
@@ -67,6 +68,35 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
     bot.loop.create_task(update_status())
+
+    # ================= AUTOMOD =================
+    GUILD_ID = 1459299004369342681  # 👈 حط ID السيرفر
+
+    url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/auto-moderation/rules"
+
+    headers = {
+        "Authorization": f"Bot {os.getenv('TOKEN')}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "name": "Bad Words Filter",
+        "event_type": 1,
+        "trigger_type": 1,
+        "trigger_metadata": {
+            "keyword_filter": ["badword"]
+        },
+        "actions": [
+            {"type": 1}
+        ],
+        "enabled": True
+    }
+
+    try:
+        requests.post(url, json=data, headers=headers)
+        print("AutoMod rule created")
+    except Exception as e:
+        print(e)
 
 # ================= STATUS =================
 
