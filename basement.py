@@ -98,13 +98,6 @@ async def unban(interaction: discord.Interaction, user: str):
     except:
         await interaction.response.send_message("invaild id or mention", ephemeral=True)
 
-# ================= TOKEN =================
-token = os.getenv("TOKEN")
-
-if not token:
-    print("❌ مفيش TOKEN")
-else:
-    bot.run(token)
 
 # ================= LOGS =================
 
@@ -269,3 +262,12 @@ async def whitelist_add_role(interaction: discord.Interaction, role: discord.Rol
 async def whitelist_remove_role(interaction: discord.Interaction, role: discord.Role):
     whitelist_roles.discard(role.id)
     await interaction.response.send_message(f"Role {role.name} removed from whitelist")
+
+# ================= TOKEN =================
+token = os.getenv("TOKEN")
+
+if not token:
+    print("❌ مفيش TOKEN")
+else:
+    bot.run(token)
+
