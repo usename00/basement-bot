@@ -85,57 +85,96 @@ async def update_status():
 
         await asyncio.sleep(60)
 
-# ================= EVENTS =================
+# ================= EMBED LOGS =================
+
+import datetime
+
+def log_embed(title, description, color=discord.Color.blue()):
+    now = datetime.datetime.utcnow()
+
+    embed = discord.Embed(
+        title=title,
+        description=description,
+        color=color,
+        timestamp=now
+    )
+
+    embed.set_footer(text=f"Date: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+
+    return embed
+
 
 @bot.event
 async def on_member_join(member):
     channel = bot.get_channel(LOG_CHANNEL_ID)
-    if channel:
-        await channel.send(f"member joined: {member.mention}")
+    if not channel:
+        return
+
+    embed = log_embed(
+        "Member Joined",
+        f"User: {member.mention}\nID: {member.id}",
+        discord.Color.green()
+    )
+
+    embed.set_thumbnail(url=member.display_avatar.url)
+    await channel.send(embed=embed)
+
 
 @bot.event
 async def on_member_remove(member):
     guild = member.guild
-
     channel = bot.get_channel(LOG_CHANNEL_ID)
-    if channel:
-        await channel.send(f"member left: {member}")
 
     async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
         if entry.target.id == member.id:
             executor = entry.user
 
-            if executor.bot or is_whitelisted(executor):
-                return
+            embed = log_embed(
+                "Member Kicked",
+                f"User: {member}\nBy: {executor}\nReason: {entry.reason}",
+                discord.Color.red()
+            )
 
-            try:
-                await guild.kick(executor, reason="Anti-kick protection")
-            except:
-                pass
+            await channel.send(embed=embed)
+            return
+
+    embed = log_embed(
+        "Member Left",
+        f"User: {member}",
+        discord.Color.orange()
+    )
+
+    await channel.send(embed=embed)
+
 
 @bot.event
 async def on_member_ban(guild, user):
     channel = bot.get_channel(LOG_CHANNEL_ID)
-    if channel:
-        await channel.send(f"user banned: {user}")
 
     async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban):
         if entry.target.id == user.id:
             executor = entry.user
 
-            if executor.bot or is_whitelisted(executor):
-                return
+            embed = log_embed(
+                "User Banned",
+                f"User: {user}\nBy: {executor}\nReason: {entry.reason}",
+                discord.Color.dark_red()
+            )
 
-            try:
-                await guild.kick(executor, reason="Anti-ban protection")
-            except:
-                pass
+            await channel.send(embed=embed)
+
 
 @bot.event
 async def on_member_unban(guild, user):
     channel = bot.get_channel(LOG_CHANNEL_ID)
-    if channel:
-        await channel.send(f"user unbanned: {user}")
+
+    embed = log_embed(
+        "User Unbanned",
+        f"User: {user}",
+        discord.Color.green()
+    )
+
+    await channel.send(embed=embed)
 
 # ================= COMMANDS =================
 
