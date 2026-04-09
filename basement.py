@@ -471,11 +471,22 @@ async def avatar(ctx, member: discord.Member = None):
 
 @bot.command()
 async def join(ctx):
-    if ctx.author.voice:
-        await ctx.author.voice.channel.connect()
-        await ctx.send("joined voice")
-    else:
+    if not ctx.author.voice:
         await ctx.send("you are not in a voice channel")
+        return
+
+    channel = ctx.author.voice.channel
+
+    try:
+        if ctx.voice_client:
+            await ctx.voice_client.move_to(channel)
+        else:
+            await channel.connect()
+
+        await ctx.send(f"joined {channel.name}")
+
+    except Exception as e:
+        await ctx.send(f"error: {e}")
 
 # ---------- FUN ----------
 
