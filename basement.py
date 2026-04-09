@@ -237,18 +237,24 @@ async def avatar(interaction: discord.Interaction, user: str = None):
     await interaction.response.send_message(member.display_avatar.url)
 
 @bot.tree.command(name="join", description="join voice channel")
-async def join(interaction: discord.Interaction, channel: str = None):
-    vc = interaction.user.voice.channel if not channel and interaction.user.voice else await get_voice_channel(interaction, channel)
-
-    if not vc:
-        await interaction.response.send_message("channel not found", ephemeral=True)
+async def join(interaction: discord.Interaction):
+    
+    if not interaction.user.voice:
+        await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
         return
 
+    channel = interaction.user.voice.channel
+
     try:
-        await vc.connect()
-        await interaction.response.send_message(f"joined {vc.name}")
-    except:
-        await interaction.response.send_message("error joining", ephemeral=True)
+        if interaction.guild.voice_client:
+            await interaction.guild.voice_client.move_to(channel)
+        else:
+            await channel.connect()
+
+        await interaction.response.send_message(f"Joined {channel.name}")
+
+    except Exception as e:
+        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
 
 # ================= WHITELIST =================
 
