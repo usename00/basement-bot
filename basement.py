@@ -59,7 +59,7 @@ token = os.getenv("TOKEN")
 if not token:
     print("❌ مفيش TOKEN")
 else:
-bot.run(TOKEN)
+    bot.run(TOKEN)
 
 # ================= LOGS =================
 
