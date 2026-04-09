@@ -2,71 +2,89 @@ import discord
 from discord.ext import commands
 import os
 
-# ================== INTENTS ==================
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-# ================== BOT ==================
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ================== READY ==================
+# ================= READY =================
 @bot.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
+    try:
+        synced = await bot.tree.sync()
+        print(f"✅ Synced {len(synced)} commands")
+    except Exception as e:
+        print(e)
 
-# ================== COMMANDS ==================
-@bot.command()
-async def ping(ctx):
-    await ctx.send("🏓 Pong!")
+    print(f"🔥 Logged in as {bot.user}")
 
-@bot.command()
-async def say(ctx, *, message):
-    await ctx.send(message)
+# ================= SLASH COMMANDS =================
 
-@bot.command()
-async def server(ctx):
-    await ctx.send(f"📊 عدد الأعضاء: {ctx.guild.member_count}")
+@bot.tree.command(name="helloworld", description="test")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("hello")
 
-# ================== KICK ==================
-@bot.command()
+# ----------- KICK -----------
+@bot.tree.command(name="kick", description="kick a member")
 @commands.has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member, *, reason="No reason"):
+async def kick(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason"):
+    if member.top_role >= interaction.user.top_role:
+        await interaction.response.send_message("you cant kick a higher role member", ephemeral=True)
+        return
+
     try:
         await member.kick(reason=reason)
-        await ctx.send(f"👢 تم طرد {member} | السبب: {reason}")
+        await interaction.response.send_message(f"kicked {member} | reason: {reason}")
     except:
-        await ctx.send("❌ مقدرتش أطرده")
+        await interaction.response.send_message("you cant kick this member", ephemeral=True)
 
-# ================== BAN ==================
-@bot.command()
+# ----------- BAN -----------
+@bot.tree.command(name="ban", description="ban a member")
 @commands.has_permissions(ban_members=True)
-async def ban(ctx, member: discord.Member, *, reason="No reason"):
+async def ban(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason"):
+    if member.top_role >= interaction.user.top_role:
+        await interaction.response.send_message("you cant ban a higher role member", ephemeral=True)
+        return
+
     try:
         await member.ban(reason=reason)
-        await ctx.send(f"🔨 تم حظر {member} | السبب: {reason}")
+        await interaction.response.send_message(f"user banned {member} | reason: {reason}")
     except:
-        await ctx.send("❌ مقدرتش أبنده")
+        await interaction.response.send_message("i cant ban this member", ephemeral=True)
 
-# ================== ERRORS ==================
-@kick.error
-async def kick_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("❌ معندكش صلاحية")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("❌ لازم تحدد الشخص")
-
-@ban.error
-async def ban_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("❌ معندكش صلاحية")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("❌ لازم تحدد الشخص")
-
-# ================== TOKEN ==================
+# ================= TOKEN =================
 token = os.getenv("TOKEN")
 
 if not token:
-    print("❌ مفيش TOKEN! حطه في Railway Variables")
+    print("❌ مفيش TOKEN")
 else:
-    bot.run(token)
+bot.run(token)
+
+# ================= LOGS =================
+
+LOG_CHANNEL_ID = 1491880119638163487  # حط هنا ID الروم بتاع اللوجات
+
+@bot.event
+async def on_member_join(member):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        await channel.send(f"member joined: {member.mention}")
+
+@bot.event
+async def on_member_remove(member):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        await channel.send(f"member left: {member}")
+
+@bot.event
+async def on_member_ban(guild, user):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        await channel.send(f"user banned: {user}")
+
+@bot.event
+async def on_member_unban(guild, user):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        await channel.send(f"user unbanned: {user}")
